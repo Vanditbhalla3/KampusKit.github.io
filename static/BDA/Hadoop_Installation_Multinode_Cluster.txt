@@ -1,0 +1,158 @@
+Create three copy of Hadoop Single Node Cluster
+
+Load Master Nodes & Slave Nodes into VMs
+Load the master, slave 1, slave2 into the VM & change the VM Settings for name & Configurations 
+
+PING all three Nodes:
+---------------------
+Check IP adress of all the Nodes:
+ifconfig : Master , Slave1, Slave2
+
+Ping to check all the nodes:
+----------------------------
+ping ip addresses of the Slave1 & Slave2
+
+Change the Host Names of all the three systems:
+-----------------------------------------------
+sudo nano /etc/hostname
+
+Change the hostnames to master, slave1, slave2
+
+Add the IP of Master & Slaves:
+------------------------------
+
+sudo nano /etc/hosts
+
+Add ip adress of the Hosts & Slaves in the file.
+e.g
+192.168.182.131		master
+192.168.182.133		slave1
+192.168.182.132		slave2
+
+Reboot to load all the chnages
+
+Test SSH Connectivity:
+----------------------
+ssh master
+exit
+ssh slave1
+exit
+ssh slave2
+exit
+
+Update core-site.xml file of all the Slaves & Master
+----------------------------------------------------
+core-site.xml
+-------------
+<configuration>
+<property>
+<name>fs.default.name</name>
+<value>hdfs://master:9000</value>
+</property>
+</configuration>
+
+Update hdfs-site.xml
+--------------------
+Change the dfs replication to 2
+
+slave:
+------
+<configuration>
+<property>
+<name>dfs.replication</name>
+<value>2</value>
+</property>
+<property>
+<name>dfs.datanode.data.dir</name>
+<value>file:/usr/local/hadoop/yarn_data/hdfs/datanode</value>
+</property>
+</configuration>
+
+master:
+-------
+<configuration>
+<property>
+<name>dfs.replication</name>
+<value>2</value>
+</property>
+<property>
+<name>dfs.datanode.data.dir</name>
+<value>file:/usr/local/hadoop/yarn_data/hdfs/namenode</value>
+</property>
+</configuration>
+
+Delete the datanode location from master
+Delete the namenode location from slave
+
+Update yarn-site.xml
+--------------------
+<property>
+<name>yarn.resourcemanager.resource-tracker.address</name>
+<value>master:8025</value>
+</property>
+<property>
+<name>yarn.resourcemanager.scheduler.address</name>
+<value>master:8030</value>
+</property>
+<property>
+<name>yarn.resourcemanager.address</name>
+<value>master:8050</value>
+</property>
+
+mapred-site.xml
+---------------
+Jobhistory file is only needed it is required by only few program i.e. PIG
+
+<property>
+<name>mapred.framework.name</name>
+<value>yarn</value>
+</property>
+<property>
+<name>mapreduce.jobhistory.address</name>
+<value>master:10020</value>
+</property>
+
+Update master & slave files:
+----------------------------
+If you see any entry related to localhost delete it.
+
+sudo nano /usr/local/hadoop/etc/hadoop/slaves
+sudo nano /usr/local/hadoop/etc/hadoop/masters
+
+Recreate NameNode Folder:
+--------------------------
+sudo rm -rf /usr/local/hadoop/yarn_data/
+sudo mkdir -p /usr/local/hadoop_tmp/hdfs/namenode
+sudo chown hduser:hadoop -R /usr/local/hadoop_tmp
+sudo chmod -R 777 /usr/local/hadoop_tmp/hdfs/namenode
+
+Recreate DataNode Folder:
+--------------------------
+sudo rm -rf /usr/local/hadoop/yarn_data/
+sudo mkdir -p /usr/local/hadoop_tmp/hdfs/datanode
+sudo chown hduser:hadoop -R /usr/local/hadoop_tmp
+sudo chmod -R 777 /usr/local/hadoop_tmp/hdfs/datanode
+
+Start Commands only in Master Node :
+------------------------------------
+start-dfs.sh
+start-yarn.sh
+
+or
+
+start-dfs.sh && start-yarn.sh
+
+or
+
+start-all.sh
+
+http://master:50070
+http://master:8088/cluster/nodes
+
+Nodes Report:
+------------
+hdfs dfsadmin-report
+
+
+
+
